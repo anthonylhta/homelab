@@ -3,6 +3,7 @@
 Tracking the journey from a local compose stack to self-hosted apps on k3s.
 
 ## Phase 1 — Local observability stack
+
 - [ ] `compose up` — one command brings up app + postgres + prometheus + grafana
 - [ ] metrics scraped — Prometheus scrapes the app's `/metrics` endpoint
 - [ ] grafana dashboard live — provisioned datasource + starter dashboard render app metrics
@@ -15,6 +16,7 @@ Tracking the journey from a local compose stack to self-hosted apps on k3s.
 > README "Verify it works" checklist. The `/k3s` files are drafts for Phase 2.
 
 ## Phase 2 — Move to a real server / k3s (next)
+
 - [ ] Provision a VPS (Hetzner / DigitalOcean / Fly machine) with Docker
 - [ ] Reverse proxy + TLS (Caddy or Traefik) in front of the stack
 - [ ] Secrets out of `.env` and into a proper secret store
