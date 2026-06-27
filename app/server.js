@@ -9,7 +9,8 @@ const PORT = parseInt(process.env.PORT || '3000', 10);
 // ---------------------------------------------------------------------------
 // Postgres pool. The app intentionally stays UP even when the database is
 // unreachable — DB health is surfaced via /metrics (app_db_up) and /readyz,
-// not by crashing the process.
+// not by crashing the process. Creating the Pool does not open a connection;
+// that happens lazily on the first query.
 // ---------------------------------------------------------------------------
 const pool = new Pool({
   host: process.env.POSTGRES_HOST || 'postgres',
@@ -59,6 +60,25 @@ const dbQueriesTotal = new client.Counter({
   registers: [register],
 });
 
+/**
+ * Run a query, updating the db_up gauge and query counter from the outcome.
+ * Never throws — failures are reported via the `ok`/`error` fields.
+ * @param {string} sql
+ * @returns {Promise<{ ok: boolean, result: import('pg').QueryResult | null, error: string | null }>}
+ */
+async function queryDb(sql) {
+  try {
+    const result = await pool.query(sql);
+    dbQueriesTotal.inc({ status: 'ok' });
+    dbUp.set(1);
+    return { ok: true, result, error: null };
+  } catch (err) {
+    dbQueriesTotal.inc({ status: 'error' });
+    dbUp.set(0);
+    return { ok: false, result: null, error: /** @type {Error} */ (err).message };
+  }
+}
+
 // ---------------------------------------------------------------------------
 // App
 // ---------------------------------------------------------------------------
@@ -77,19 +97,6 @@ app.use((req, res, next) => {
   });
   next();
 });
-
-async function queryDb(sql) {
-  try {
-    const result = await pool.query(sql);
-    dbQueriesTotal.inc({ status: 'ok' });
-    dbUp.set(1);
-    return { ok: true, result };
-  } catch (err) {
-    dbQueriesTotal.inc({ status: 'error' });
-    dbUp.set(0);
-    return { ok: false, error: err.message };
-  }
-}
 
 app.get('/', async (req, res) => {
   const db = await queryDb('SELECT now() AS now, version() AS version');
@@ -119,24 +126,43 @@ app.get('/metrics', async (req, res) => {
   res.end(await register.metrics());
 });
 
-// Background probe so app_db_up reflects reality even with no traffic.
-const probe = setInterval(() => { queryDb('SELECT 1').catch(() => {}); }, 15000);
-queryDb('SELECT 1').catch(() => {});
+/**
+ * Start listening and begin the background DB probe. Returns the HTTP server so
+ * the caller controls its lifecycle. Kept out of module load so tests can import
+ * `app` without binding a port.
+ * @returns {import('http').Server}
+ */
+function start() {
+  // Background probe so app_db_up reflects reality even with no traffic.
+  const probe = setInterval(() => {
+    queryDb('SELECT 1').catch(() => {});
+  }, 15000);
+  queryDb('SELECT 1').catch(() => {});
 
-const server = app.listen(PORT, () => {
-  console.log(`homelab-app listening on :${PORT}`);
-});
-
-// ---------------------------------------------------------------------------
-// Graceful shutdown so `docker compose down` / k8s SIGTERM is clean.
-// ---------------------------------------------------------------------------
-function shutdown(signal) {
-  console.log(`[${signal}] shutting down...`);
-  clearInterval(probe);
-  server.close(() => {
-    pool.end().finally(() => process.exit(0));
+  const server = app.listen(PORT, () => {
+    console.log(`homelab-app listening on :${PORT}`);
   });
-  setTimeout(() => process.exit(1), 10000).unref();
+
+  // Graceful shutdown so `docker compose down` / k8s SIGTERM is clean.
+  /** @param {string} signal */
+  function shutdown(signal) {
+    console.log(`[${signal}] shutting down...`);
+    clearInterval(probe);
+    server.close(() => {
+      pool.end().finally(() => process.exit(0));
+    });
+    setTimeout(() => process.exit(1), 10000).unref();
+  }
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+  process.on('SIGINT', () => shutdown('SIGINT'));
+
+  return server;
 }
-process.on('SIGTERM', () => shutdown('SIGTERM'));
-process.on('SIGINT', () => shutdown('SIGINT'));
+
+// Only boot the server when run directly (node server.js), not when imported
+// by tests.
+if (require.main === module) {
+  start();
+}
+
+module.exports = { app, pool, register, queryDb, start };
