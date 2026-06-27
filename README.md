@@ -57,11 +57,11 @@ make up                   # build + start everything in the background
 
 `make up` prints the URLs. Default credentials are `admin / admin` for Grafana.
 
-| Service    | URL                     | Notes                                  |
-| ---------- | ----------------------- | -------------------------------------- |
-| App        | http://localhost:3000   | `/`, `/healthz`, `/readyz`, `/metrics` |
-| Prometheus | http://localhost:9090   | Status → Targets to confirm scraping   |
-| Grafana    | http://localhost:3001   | login `admin` / `admin`                |
+| Service    | URL                   | Notes                                  |
+| ---------- | --------------------- | -------------------------------------- |
+| App        | http://localhost:3000 | `/`, `/healthz`, `/readyz`, `/metrics` |
+| Prometheus | http://localhost:9090 | Status → Targets to confirm scraping   |
+| Grafana    | http://localhost:3001 | login `admin` / `admin`                |
 
 ### Make targets
 
@@ -84,7 +84,7 @@ make help     List targets
 3. **DB connected:** `curl localhost:3000/` → `"db":{"connected":true,...}`.
 4. **Prometheus scraping:** open http://localhost:9090/targets — the `homelab-app`
    target should be **UP**.
-5. **Grafana dashboard live:** open http://localhost:3001 → Dashboards → *Homelab*
+5. **Grafana dashboard live:** open http://localhost:3001 → Dashboards → _Homelab_
    → **Homelab — App Overview**. Generate some traffic to see the graphs move:
    ```sh
    for i in $(seq 1 200); do curl -s localhost:3000/ >/dev/null; done
