@@ -1,0 +1,26 @@
+# DRAFT — Phase 2 placeholder. k3s ships with Traefik by default.
+# TODO: set a real host, add cert-manager for TLS.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: homelab-app
+  namespace: homelab
+  annotations:
+    # cert-manager.io/cluster-issuer: letsencrypt-prod  # TODO: enable for TLS
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: app.homelab.example.com # TODO: real DNS name
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: homelab-app
+                port:
+                  number: 80
+  # tls:                                  # TODO: enable once cert-manager is set up
+  #   - hosts:
+  #       - app.homelab.example.com
+  #     secretName: homelab-app-tls

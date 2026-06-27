@@ -1,0 +1,57 @@
+# DRAFT — Phase 2 placeholder. Mirrors the compose "app" service.
+# TODO: push homelab/app to a registry and set `image` accordingly.
+# TODO: move POSTGRES_PASSWORD into a Secret instead of plain env.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: homelab-app
+  namespace: homelab
+  labels:
+    app: homelab-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: homelab-app
+  template:
+    metadata:
+      labels:
+        app: homelab-app
+    spec:
+      containers:
+        - name: app
+          image: ghcr.io/CHANGE_ME/homelab-app:latest # TODO: real registry path
+          ports:
+            - name: http
+              containerPort: 3000
+          env:
+            - name: POSTGRES_HOST
+              value: postgres # TODO: point at the Postgres Service / managed DB
+            - name: POSTGRES_USER
+              value: homelab
+            - name: POSTGRES_DB
+              value: homelab
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: homelab-db # TODO: create this Secret
+                  key: password
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi

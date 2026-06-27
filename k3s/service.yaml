@@ -1,0 +1,21 @@
+# DRAFT — Phase 2 placeholder. Exposes the app inside the cluster.
+apiVersion: v1
+kind: Service
+metadata:
+  name: homelab-app
+  namespace: homelab
+  labels:
+    app: homelab-app
+  annotations:
+    # Lets Prometheus (Operator/annotation discovery) scrape the pod.
+    prometheus.io/scrape: "true"
+    prometheus.io/path: "/metrics"
+    prometheus.io/port: "3000"
+spec:
+  type: ClusterIP
+  selector:
+    app: homelab-app
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

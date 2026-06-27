@@ -1,0 +1,19 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: homelab
+
+scrape_configs:
+  # Prometheus scraping itself.
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # The sample app. "app" resolves on the shared compose network.
+  - job_name: homelab-app
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["app:3000"]
+        labels:
+          service: homelab-app
