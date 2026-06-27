@@ -19,3 +19,9 @@ Thumbs.db
 # Runtime / data (volumes are managed by Docker, not committed)
 data/
 *.log
+
+# Local decision notes — kept out of the public history on purpose
+notes/
+
+# Claude Code — personal/local overrides only; shared config is committed
+.claude/settings.local.json

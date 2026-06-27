@@ -1,0 +1,28 @@
+{
+  "name": "homelab",
+  "version": "0.1.0",
+  "description": "Infra learning sandbox: Docker Compose observability stack on the way to k3s",
+  "private": true,
+  "license": "MIT",
+  "workspaces": [
+    "app"
+  ],
+  "scripts": {
+    "dev": "node --watch app/server.js",
+    "build": "docker compose build",
+    "test": "node --test app/",
+    "lint": "eslint . && prettier --check .",
+    "lint:fix": "eslint . --fix && prettier --write .",
+    "format": "prettier --write .",
+    "typecheck": "tsc --noEmit",
+    "check": "npm run typecheck && npm run lint && npm test"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.10.0",
+    "@types/node": "^20.16.5",
+    "eslint": "^9.10.0",
+    "globals": "^15.9.0",
+    "prettier": "^3.3.3",
+    "typescript": "^5.6.2"
+  }
+}

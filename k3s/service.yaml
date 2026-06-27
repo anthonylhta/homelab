@@ -8,9 +8,9 @@ metadata:
     app: homelab-app
   annotations:
     # Lets Prometheus (Operator/annotation discovery) scrape the pod.
-    prometheus.io/scrape: "true"
-    prometheus.io/path: "/metrics"
-    prometheus.io/port: "3000"
+    prometheus.io/scrape: 'true'
+    prometheus.io/path: '/metrics'
+    prometheus.io/port: '3000'
 spec:
   type: ClusterIP
   selector:
