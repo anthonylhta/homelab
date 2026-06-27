@@ -1,0 +1,7 @@
+# DRAFT — Phase 2 placeholder. Not wired up yet.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: homelab
+  labels:
+    app.kubernetes.io/part-of: homelab
