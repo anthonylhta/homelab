@@ -61,6 +61,22 @@ Stack controls: `make up` / `make down` / `make logs` / `make ps` / `make clean`
   dependency, read its _installed_ docs/changelog (e.g. in `node_modules`) — the
   current API may differ from training data. Heed deprecation notices.
 
+## gstack (global skill suite)
+
+gstack is installed machine-globally (`~/.claude/skills/gstack`, commands prefixed
+`/gstack-*`) — never vendored into this repo. Proactively suggest the right one when
+the task fits — don't wait to be asked:
+
+- **Use here:** `/gstack-investigate` (systematic root-cause debugging across the
+  compose stack), `/gstack-diagram` (compose/network/scrape-path architecture
+  diagrams), `/gstack-careful` + `/gstack-freeze` (safety rails around destructive
+  `docker`/`make` commands), `/gstack-qa` (drive the sample app and Grafana on
+  localhost when the stack is up).
+- **Never here:** `/gstack-ship` and `/gstack-land-and-deploy` — they push, open PRs
+  and merge on their own terms; the branch → PR → green CI flow above owns shipping
+  and merging stays manual. Keep gstack checkpoint auto-commits off; commits follow
+  the commit voice above.
+
 ## Layout
 
 ```
